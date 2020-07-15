@@ -68,7 +68,7 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
     }
 
     @Override
-    public String visitExprPoint(AbdlParser.ExprPointContext ctx) {
+    public String visitExprArrDecl(AbdlParser.ExprArrDeclContext ctx) {
         return "point";
     }
 
@@ -93,8 +93,8 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
     }
 
     @Override
-    public String visitExprPointIndex(AbdlParser.ExprPointIndexContext ctx) {
-        return "int";
+    public String visitExprArrayIndex(AbdlParser.ExprArrayIndexContext ctx) {
+        return visit(ctx.expr(0));
     }
 
     @Override

@@ -3,6 +3,7 @@ package Compiler;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
         for (var function : ctx.functDef()) {
             String sourceFuncName = function.funcName.getText();
             List<String> args = new ArrayList<>();
-            String resType = function.Type() != null ? function.Type().getText() : null;
+            String resType = function.type() != null ? function.type().getText() : null;
             if (resType == null) resType = "void";
             args.addAll((List<String>) visit(function.typedArgs()));
             String targetFuncName = createFunc();
@@ -238,7 +239,7 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     }
 
     public Object visitBoard(AbdlParser.BoardContext ctx) {
-        String point = (String) visit(ctx.point());
+        String point = (String) visit(ctx.arrayDecl());
         switch (ctx.prop.getText()) {
             case "piece_name":
                 return "(getName(" + point + "))";
@@ -251,7 +252,7 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     @Override
     public Object visitVarDeclaration(AbdlParser.VarDeclarationContext ctx) {
         if (ctx.expr() == null) {
-            if (ctx.Type() == null) {
+            if (ctx.type() == null) {
                 System.err.println("Type not defined");
             } else {
                 ST varDecl = templates.getInstanceOf("decl");
@@ -259,14 +260,14 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
                 symbolTable.pushSymbol(ctx.ID().getText(), newVar);
                 varDecl.add("var", newVar.getName());
                 String value = "";
-                switch (ctx.Type().getText()) {
+                switch ((String) visit(ctx.type())) {
                     case "int":
                         value = "0";
                         break;
                     case "string":
                         value = "\"\"";
                         break;
-                    case "point":
+                    default:
                         value = "{}";
                         break;
                 }
@@ -275,11 +276,19 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
             }
         } else {
             String expr = (String) visit(ctx.expr());
+
             ST varDecl = templates.getInstanceOf("decl");
+            if(ctx.expr().getText().charAt(0) == '[') {
+                System.out.println("expr+++ " + expr);
+                System.out.println(ctx.ID().getText() + " is " + expr);
+                symbolTable.pushSymbol(ctx.ID().getText(), new Variable(expr, ""));
+                return null;
+            }
             Variable newVar = new Variable(createVar(), "");
             varDecl.add("var", newVar.getName());
             varDecl.add("val", expr);
             symbolTable.pushSymbol(ctx.ID().getText(), newVar);
+            System.out.println(newVar + " -> " + ctx.ID().getText());
             return varDecl.render();
 
         }
@@ -288,8 +297,21 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
 
     @Override
     public Object visitVarAttrib(AbdlParser.VarAttribContext ctx) {
-        String var = symbolTable.resolveName(ctx.var.getText());
-        String expr = (String) visit(ctx.expr());
+        String var = "";
+        if(((String) visit(ctx.expr(1))).charAt(0) != 'v') {
+            System.out.println("Only variables are adressable with an index...\n var provided: " + var);
+            System.exit(1);
+        }
+
+        String expr = (String) visit(ctx.expr(1));
+        if(ctx.expr(0).getText().charAt(ctx.expr(0).getText().length() - 1) == ']') {
+            System.out.println(ctx.expr(0).getText().substring(0, ctx.expr(0).getText().length()-3));
+            var = symbolTable.resolveName(ctx.expr(0).getText().substring(0, ctx.expr(0).getText().length()-3)) +
+                  ".getValue()[" + ctx.expr(0).getText().split("\\[")[1];
+            //return null;
+        }
+        else var = symbolTable.resolveName(expr);
+        System.out.println(var + " = " + expr + ";");
         return var + " = " + expr + ";";
     }
 
@@ -341,21 +363,30 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitExprArrDecl(AbdlParser.ExprArrDeclContext ctx) {
+    public Object visitArrayDecl(AbdlParser.ArrayDeclContext ctx) {
         int i = 0;
         ST varDecl = templates.getInstanceOf("decl");
         String resVar = createVar();
         varDecl.add("var", resVar);
-        varDecl.add("value", "new ABDLVar([");
+        if(ctx.expr().size() == 2) {
+            String expr0 = (String) visit(ctx.expr(0));
+            String expr1 = (String) visit(ctx.expr(1));
+            varDecl.add("val", "new ABDLVar([" + expr0 + ", " + expr1 + "])");
+            addVar(varDecl.render());
+            return null;
+        }
+        varDecl.add("val", "new ABDLVar([");
         for(var expr: ctx.expr()) {
             i++;
-            varDecl.add("value", visit(expr));
-            if(i != ctx.expr().size() - 1) varDecl.add("value", ", ");
+            varDecl.add("val", visit(expr));
+            if(i != ctx.expr().size()) varDecl.add("val", ", ");
         }
-        varDecl.add("value", "})");
+        varDecl.add("val", "])");
         addVar(varDecl.render());
+        System.out.println(resVar);
         return resVar;
     }
+
 
     @Override
     public Object visitExprUnary(AbdlParser.ExprUnaryContext ctx) {
@@ -492,7 +523,12 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitExprPointIndex(AbdlParser.ExprPointIndexContext ctx) {
+    public Object visitType(AbdlParser.TypeContext ctx) {
+        return ctx.getText();
+    }
+
+    @Override
+    public Object visitExprArrayIndex(AbdlParser.ExprArrayIndexContext ctx) {
         ST varDecl = templates.getInstanceOf("decl");
         String resVar = createVar();
         String expr0 = (String) visit(ctx.expr(0));
@@ -503,17 +539,6 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
         return resVar;
     }
 
-    @Override
-    public Object visitPoint(AbdlParser.PointContext ctx) {
-        ST varDecl = templates.getInstanceOf("decl");
-        String resVar = createVar();
-        String expr0 = (String) visit(ctx.expr(0));
-        String expr1 = (String) visit(ctx.expr(1));
-        varDecl.add("var", resVar);
-        varDecl.add("val", "new ABDLVar([" + expr0 + ", " + expr1 + "])");
-        addVar(varDecl.render());
-        return resVar;
-    }
 
     private void addVar(String declaration) {
         scopesST.peek().add(stControl, declaration);

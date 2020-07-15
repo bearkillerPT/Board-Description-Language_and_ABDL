@@ -1,0 +1,7 @@
+main:
+  let a : array<int> = [2^3, " a dividir por", 2, " é igual a", 4,  "  :)"];
+  a[0] = 2;
+  for i from 0 to 5 do
+    print(a[i]);
+  done;
+end main;

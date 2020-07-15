@@ -3,7 +3,7 @@ program: (functDef | onMove | main)* EOF;
 
 main: 'main' ':' statements* ('end' 'main'|'endmain') ';';
 
-functDef: type? funcName=ID '(' typedArgs ')' ':' statements* 'end' (funcName2=ID{$funcName.text.equals($funcName2.text)}?) ';';
+functDef: Type? funcName=ID '(' typedArgs ')' ':' statements* 'end' (funcName2=ID{$funcName.text.equals($funcName2.text)}?) ';';
 
 onMove: 'on_move' ':' statements* 'end' 'on_move' ';';
 
@@ -19,15 +19,15 @@ whileStatement: 'while' expr 'do' statements* 'done' ';';
 ifStatement: 'if' expr 'then' statements* elseIf* elseStatement? ('end' 'if'|'endif') ';';
 elseIf: 'else' 'if' expr 'then' statements*;
 elseStatement: 'else' statements*;
-varDeclaration: 'let' ID (':' type)? ('=' expr)? ';';
-varAttrib: var=expr '=' expr ';';
+varDeclaration: 'let' ID (':' Type)? ('=' expr)? ';';
+varAttrib: var=ID '=' expr ';';
 functionCall: funcName='can_move' '('args ')' #CanMoveCall
              | funcName='move' '('args ')' #MoveCall
              | funcName='print' '(' args ')' #PrintCall
              | funcName=ID '(' args ')' #FuncCall;
 returnStat: 'return' expr ';';
 expr: ('-'|'+') expr #ExprUnary
-     | expr '[' expr ']' #ExprArrayIndex
+     | expr '[' expr ']' #ExprPointIndex
      | <assoc=right> expr op='^' expr #ExprOp
      | expr op=('*' | '/' | '%') expr #ExprOp
      | expr op=('+' | '-' ) expr #ExprOp
@@ -38,7 +38,8 @@ expr: ('-'|'+') expr #ExprUnary
      | '(' expr ')' #Parent
      | Int #ExprInt
      | String #ExprString
-     | arrayDecl #ExprArrDecl
+     | '[' expr (',' expr)* ']' #ExprArrDecl
+     | point #ExprPoint
      | 'null' #ExprNull
      | 'width' #ExprWidth
      | 'height' #ExprHeight
@@ -46,11 +47,13 @@ expr: ('-'|'+') expr #ExprUnary
      | 'move_count' #ExprMoveCount
      | ID #ExprID;
 
-arrayDecl: '[' expr (',' expr)* ']';
+
 args: expr? (',' expr)*;
-typedArgs: (ID ':' type)? (',' (ID ':' type))*;
-board: 'board' arrayDecl '.' prop=('piece_name' | 'owner');
-type: 'int' | 'string' | 'array' '<' (type) '>';
+
+typedArgs: (ID ':' Type)? (',' (ID ':' Type))*;
+point: '['expr ','expr']';
+board: 'board' point '.' prop=('piece_name' | 'owner');
+Type: 'int' | 'point' | 'string' | 'array' '<' Type '>';
 String: '"' ('\\"'|'\\'|.)*? '"'
        |'\'' ('\\\''|'\\'|.)*? '\'';
 ID: [_a-zA-Z][_a-zA-Z0-9]*; 

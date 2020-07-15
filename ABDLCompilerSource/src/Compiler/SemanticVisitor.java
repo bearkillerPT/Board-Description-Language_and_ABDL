@@ -31,12 +31,12 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
         }
         for (var func : ctx.functDef()) {
             LinkedList<String> args = new LinkedList<>();
-            for (var type : func.typedArgs().Type()) {
+            for (var type : func.typedArgs().type()) {
                 args.add(type.getText());
             }
             if (st.resolve(func.funcName.getText()) == null)
                 st.pushSymbol(func.funcName.getText(),
-                        new Function(func.funcName.getText(), args, func.Type() != null ? func.Type().getText() : "")
+                        new Function(func.funcName.getText(), args, func.type() != null ? func.type().getText() : "")
                 );
             else {
                 System.err.println("Multiple functions declared with the same name " + getLineFormatted(func.start) + ": " +
@@ -57,7 +57,8 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
     }
 
     @Override
-    public Object visitExprPointIndex(AbdlParser.ExprPointIndexContext ctx) {
+    public Object visitExprArrayIndex(AbdlParser.ExprArrayIndexContext ctx) {
+
         TypeInfer typeInfer = new TypeInfer(st);
         String e0Type = typeInfer.visit(ctx.expr(0));
         if (!e0Type.equals("point")) {
@@ -78,6 +79,7 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
         }
         return visitChildren(ctx);
     }
+
 
     @Override
     public Object visitFuncCall(AbdlParser.FuncCallContext ctx) {
@@ -156,7 +158,7 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
         for (int i = 0; i < ctx.typedArgs().ID().size(); i++) {
             st.pushSymbol(
                     ctx.typedArgs().ID(i).getText(),
-                    new Variable(ctx.typedArgs().ID(i).getText(), ctx.typedArgs().Type(i).getText())
+                    new Variable(ctx.typedArgs().ID(i).getText(), ctx.typedArgs().type(i).getText())
             );
         }
 
@@ -186,21 +188,21 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
     @Override
     public Object visitVarAttrib(AbdlParser.VarAttribContext ctx) {
         TypeInfer typeInfer = new TypeInfer(st);
-        Variable variable = (Variable) st.resolve(ctx.ID().getText());
-        String inferredType = typeInfer.visit(ctx.expr());
+        Variable variable = (Variable) st.resolve((String) visit(ctx.expr(0)));
+        String inferredType = typeInfer.visit(ctx.expr(1));
         if (variable == null) {
             //tested
-            System.err.println("Variable not declared " + getLineFormatted(ctx.start) + ": " + ctx.ID().getText());
+            System.err.println("Variable not declared " + getLineFormatted(ctx.start) + ": " + (String) visit(ctx.expr(0)));
             error = true;
         } else if (inferredType.equals("")) {
             //tested
-            System.err.println("It was not possible to infer expression type " + getLineFormatted(ctx.expr().start) + ": " + ctx.expr().getText());
+            System.err.println("It was not possible to infer expression type " + getLineFormatted(ctx.expr(1).start) + ": " + ctx.expr(1).getText());
             error = true;
         } else if (!variable.getType().equals(inferredType)) {
             //tested
             System.err.println("Variable and attribution types mismatch " + getLineFormatted(ctx.start) + ": " +
-                    ctx.ID().getText() + " (" + variable.getType() + ") and " +
-                    ctx.expr().getText() + " (" + inferredType + ")");
+                    ctx.expr(0).getText() + " (" + variable.getType() + ") and " +
+                    ctx.expr(1).getText() + " (" + inferredType + ")");
             error = true;
         }
         return super.visitVarAttrib(ctx);
@@ -209,7 +211,7 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
     @Override
     public Object visitVarDeclaration(AbdlParser.VarDeclarationContext ctx) {
         String type = "";
-        String declaredType = ctx.Type() != null ? ctx.Type().getText() : "";
+        String declaredType = ctx.type() != null ? ctx.type().getText() : "";
         TypeInfer ti = new TypeInfer(st);
         String inferredType = ctx.expr() != null ? ti.visit(ctx.expr()) : "";
         if (declaredType.equals("") && inferredType.equals("")) {

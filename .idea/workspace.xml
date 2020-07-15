@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="2e3d2c22-5fde-4741-a14d-080275e4f8dc" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/ABDLCompilerSource/ABDLCompilerSource.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ABDLCompilerSource/src/resources/AbdlVar.js" beforeDir="false" afterPath="$PROJECT_DIR$/ABDLCompilerSource/src/resources/AbdlVar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StandaloneCompiler/damas/AbdlVar.js" beforeDir="false" afterPath="$PROJECT_DIR$/StandaloneCompiler/damas/AbdlVar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StandaloneCompiler/damas/abdl.js" beforeDir="false" afterPath="$PROJECT_DIR$/StandaloneCompiler/damas/abdl.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StandaloneCompiler/damasBot.abdl" beforeDir="false" afterPath="$PROJECT_DIR$/StandaloneCompiler/damasBot.abdl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/StandaloneCompiler/damasBots1vs2.abdl" beforeDir="false" afterPath="$PROJECT_DIR$/StandaloneCompiler/damasBots1vs2.abdl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/abdl_source_code_examples/CodeGenTest/arrayTest.abdl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/Abdl.interp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/Abdl.tokens" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlBaseListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlBaseVisitor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlLexer.interp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlLexer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlLexer.tokens" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlParser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen/AbdlVisitor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +49,37 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/ABDLCompilerSource" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/ABDLCompilerSource/gen/antlr4Gen" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="antlr4Gen" />
+      <recent name="Compiler" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\dev\mybdl\Board-Description-Language_and_ABDL\ABDLCompilerSource\gen\antlr4Gen" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Compiler.Main" />
+      <module name="ABDLCompilerSource" />
+      <option name="PROGRAM_PARAMETERS" value="./../../abdl_source_code_examples/CodeGenTest/arrayTest.abdl" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Compiler.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -40,10 +94,41 @@
     </task>
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="WindowStateProjectService">
+    <state x="447" y="96" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1594822656709">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="447" y="96" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824@0.0.1536.824" timestamp="1594822656709" />
     <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1590260942535">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1590260942535" />
+    <state width="1493" height="210" key="GridCell.Tab.0.bottom" timestamp="1594822807093">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1493" height="210" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1594822807093" />
+    <state width="1493" height="210" key="GridCell.Tab.0.center" timestamp="1594822807093">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1493" height="210" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1594822807093" />
+    <state width="1493" height="210" key="GridCell.Tab.0.left" timestamp="1594822807092">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1493" height="210" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1594822807092" />
+    <state width="1493" height="210" key="GridCell.Tab.0.right" timestamp="1594822807093">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1493" height="210" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1594822807093" />
   </component>
 </project>
