@@ -341,6 +341,23 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitExprArrDecl(AbdlParser.ExprArrDeclContext ctx) {
+        int i = 0;
+        ST varDecl = templates.getInstanceOf("decl");
+        String resVar = createVar();
+        varDecl.add("var", resVar);
+        varDecl.add("value", "new ABDLVar([");
+        for(var expr: ctx.expr()) {
+            i++;
+            varDecl.add("value", visit(expr));
+            if(i != ctx.expr().size() - 1) varDecl.add("value", ", ");
+        }
+        varDecl.add("value", "})");
+        addVar(varDecl.render());
+        return resVar;
+    }
+
+    @Override
     public Object visitExprUnary(AbdlParser.ExprUnaryContext ctx) {
         ST varDecl = templates.getInstanceOf("decl");
         String resVar = createVar();

@@ -17,7 +17,8 @@ export default class AbdlVar {
       return new AbdlVar(e1 + "" + e2);
     //int + point    ->  point
     if (this.getType() == 'number' && other.getType() == 'object')
-      return new AbdlVar([e1 + e2[0], e1 + e2[1]]);
+      for(num: e2) num += e1
+      return new AbdlVar('[' e2 ']')
     //string + int    ->  string
     if (this.getType() == 'string' && other.getType() == 'number')
       return new AbdlVar(e1 + "" + e2)
@@ -35,7 +36,11 @@ export default class AbdlVar {
       return new AbdlVar("[" + e1 + "]" + e2)
     //point + point   ->  point
     if (this.getType() == 'object' && other.getType() == 'object')
-      return new AbdlVar([e1[0] + e2[0], e1[1] + e2[1]])
+      let i = 0;
+      for(num: e1) {
+        e2[i] +=e1[i]
+        i++
+      }
   }
   sub(other) { // '-'
     let e1 = this.getValue()

@@ -38,6 +38,7 @@ expr: ('-'|'+') expr #ExprUnary
      | '(' expr ')' #Parent
      | Int #ExprInt
      | String #ExprString
+     | '[' expr (',' expr)* ']' #ExprArrDecl
      | point #ExprPoint
      | 'null' #ExprNull
      | 'width' #ExprWidth
@@ -50,10 +51,9 @@ expr: ('-'|'+') expr #ExprUnary
 args: expr? (',' expr)*;
 
 typedArgs: (ID ':' Type)? (',' (ID ':' Type))*;
-
 point: '['expr ','expr']';
 board: 'board' point '.' prop=('piece_name' | 'owner');
-Type: 'int' | 'point' | 'string';
+Type: 'int' | 'point' | 'string' | 'array' '<' Type '>';
 String: '"' ('\\"'|'\\'|.)*? '"'
        |'\'' ('\\\''|'\\'|.)*? '\'';
 ID: [_a-zA-Z][_a-zA-Z0-9]*; 
