@@ -1,0 +1,116 @@
+main:
+    best_move();
+end main;
+
+
+on_move:    
+    best_move();
+end on_move;
+
+best_move():
+    let pieceName : string;
+    let player : int = current_player;
+    let bestEvaluation : int = -1;
+    let source : array<int> = [0, 0];
+    let target : array<int> = [0, 0];
+    for x1 from 0 to width - 1 do
+        for y1 from 0 to height - 1 do
+            pieceName = board[x1, y1].piece_name; 
+            player = board[x1, y1].owner; 
+            if pieceName /= "" then 
+                for x2 from 0 to width - 1 do
+                    for y2 from 0 to height - 1 do
+                        if can_move([x1,y1], [x2,y2]) then
+                            let eval : int = evaluate_board_after_move([x1, y1], [x2,y2]);
+                            let bool : int = 0;
+                            print("best: " + bestEvaluation + "eval: " + eval);
+                            if current_player == 1 then
+                                bool = eval > bestEvaluation;
+                            else 
+                                bool = eval > bestEvaluation;
+                            end if;
+                            if bool then
+                                bestEvaluation = eval;
+                                source = [x1, y1];
+                                target = [x2, y2];
+                                print(source + " -> " + target + ": " + bestEvaluation);
+                            end if;
+                        end if;
+                    done;
+                done;
+            end if;
+        done;
+    done;
+    print("Gonna move now: " + source + " -> " + target);
+    move(source, target);    
+    print("Done moving!");
+end best_move;
+
+int pieceValue(piece : string):
+    if piece == "pawn" then
+        return 10;
+    else if piece == "tower" then
+        return 50;
+    else if piece == "horse" then
+        return 30;
+    else if piece == "bishop" then
+        return 30;
+    else if piece == "queen" then
+        return 90;
+    else if piece == "king" then
+        return 900;
+    else
+        return 0;
+    end if;
+end pieceValue;
+
+int evaluate_board_after_move(source : array<int>, target : array<int>):
+    let res : int = 0;
+    let pieceName : string;
+    let a : array<array<array<string>>> = [  [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]],
+                                              [["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""]]];
+    for x from 0 to width - 1 do
+        for y from 0 to height - 1 do
+            a[x][y][0] = board[x,y].owner;
+            a[x][y][1] = board[x,y].piece_name;
+        done;
+    done;
+    move_in_array(a, source[0], source[1], target[0], target[1]);
+    
+
+
+    for x from 0 to width - 1 do
+        for y from 0 to height - 1 do
+            if board[x, y].owner == current_player then 
+                res = res - pieceValue(a[x][y][1]);
+            else
+                res = res + pieceValue(a[x][y][1]);
+            end if;
+        done;
+    done;
+
+    for x from 0 to width - 1 do
+        for y from 0 to height - 1 do
+            if board[x, y].owner == current_player then 
+                res = res - pieceValue(board[x,y].piece_name);
+            else
+                res = res + pieceValue(board[x,y].piece_name);
+            end if;
+        done;
+    done;
+    
+    return res;
+end evaluate_board_after_move;
+
+move_in_array(b : array<array<array<string>>>, x1 : int, y1 : int, x2 : int, y2 : int):
+  let tempA : array<string> =  b[x2][y2];
+  b[x2][y2] = b[x1][y1];
+  b[x1][y1] = tempA;
+end move_in_array;
+

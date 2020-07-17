@@ -13,14 +13,14 @@ const range = (a, b) => {
 }
 const getName = (a) => {
   try {
-    return new ABDLVar(context.board[a.getValue()[0]][a.getValue()[1]].piece.name)
+    return new ABDLVar(context.board[a[0]][a[1]].piece.name)
   } catch (e) {
     return new ABDLVar("");
   }
 }
 const getOwner = (a) => {
   try {
-    return new ABDLVar(context.board[a.getValue()[0]][a.getValue()[1]].piece.owner)
+    return new ABDLVar(context.board[a[0]][a[1]].piece.owner)
   } catch (e) {
     return new ABDLVar(-1);
   }

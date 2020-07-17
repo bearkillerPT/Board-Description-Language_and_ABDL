@@ -3,57 +3,75 @@ export default class AbdlVar {
     if (typeof value == 'number')
       value = Math.floor(value);
     if (typeof value == 'object')
-      value = [Math.floor(value[0]), Math.floor(value[1])];
+      for(val in this.getValue()) val = Math.floor(val);
     this.value = value;
   }
   add(other) { // '+'
-    let e1 = this.getValue()
-    let e2 = other.getValue()
-    //int + int       ->  int
-    if (this.getType() == 'number' && other.getType() == 'number')
-      return new AbdlVar(e1 + e2);
-    //int + string    ->  string
-    if (this.getType() == 'number' && other.getType() == 'string')
-      return new AbdlVar(e1 + "" + e2);
-    //int + point    ->  point
-    if (this.getType() == 'number' && other.getType() == 'object')
-      return new AbdlVar([e1 + e2[0], e1 + e2[1]]);
-    //string + int    ->  string
-    if (this.getType() == 'string' && other.getType() == 'number')
-      return new AbdlVar(e1 + "" + e2)
-    //string + string ->  string
-    if (this.getType() == 'string' && other.getType() == 'string')
-      return new AbdlVar(e1 + e2)
-    //string + point  ->  string
-    if (this.getType() == 'string' && other.getType() == 'object')
-      return new AbdlVar(e1 + "[" + e2 + "]")
-    //point + int     ->  point
-    if (this.getType() == 'object' && other.getType() == 'number')
-      return new AbdlVar([e2 + e1[0], e2 + e1[1]])
-    //point + string  ->  string
-    if (this.getType() == 'object' && other.getType() == 'string')
-      return new AbdlVar("[" + e1 + "]" + e2)
-    //point + point   ->  point
-    if (this.getType() == 'object' && other.getType() == 'object')
-      return new AbdlVar([e1[0] + e2[0], e1[1] + e2[1]])
-  }
-  sub(other) { // '-'
-    let e1 = this.getValue()
-    let e2 = other.getValue()
-    //int - int       ->  int
-    if (this.getType() == 'number' && other.getType() == 'number')
-      return new AbdlVar(e1 - e2);
-    //int - point -> point    
-    if (this.getType() == 'number' && other.getType() == 'object')
-      return new AbdlVar([e1 - e2[0], e1 - e2[1]]);
-    //point - int     ->  point
-    if (this.getType() == 'object' && other.getType() == 'number')
-      return new AbdlVar([e1[0] - e2, e1[1] - e2]);
-    //point - point   ->  point
-    if (this.getType() == 'object' && other.getType() == 'object')
-      return new AbdlVar([e1[0] - e2[0], e1[1] - e2[1]]);
-    return null;
-  }
+      let e1 = this.getValue()
+      let e2 = other.getValue()
+      //int + int       ->  int
+      if (this.getType() == 'number' && other.getType() == 'number')
+        return new AbdlVar(e1 + e2);
+      //int + string    ->  string
+      if (this.getType() == 'number' && other.getType() == 'string')
+        return new AbdlVar(e1 + "" + e2);
+      //int + point    ->  point
+      if (this.getType() == 'number' && other.getType() == 'object') {
+        for(num in e2) num += e1
+        return e2;
+      }
+
+      //string + int    ->  string
+      if (this.getType() == 'string' && other.getType() == 'number')
+        return new AbdlVar(e1 + "" + e2)
+      //string + string ->  string
+      if (this.getType() == 'string' && other.getType() == 'string')
+        return new AbdlVar(e1 + e2)
+      //string + point  ->  string
+      if (this.getType() == 'string' && other.getType() == 'object')
+        return new AbdlVar(e1 + "[" + e2 + "]")
+      //point + int     ->  point
+      if (this.getType() == 'object' && other.getType() == 'number')
+        return new AbdlVar([e2 + e1[0], e2 + e1[1]])
+      //point + string  ->  string
+      if (this.getType() == 'object' && other.getType() == 'string')
+        return new AbdlVar("[" + e1 + "]" + e2)
+      //point + point   ->  point
+      if (this.getType() == 'object' && other.getType() == 'object') {
+        let i = 0;
+        let a = e1;
+        for(num in a) {
+          num +=e2[i]
+          i++
+        }
+        return a;
+      }
+
+    }
+    sub(other) { // '-'
+      let e1 = this.getValue()
+      let e2 = other.getValue()
+      //int - int       ->  int
+      if (this.getType() == 'number' && other.getType() == 'number')
+        return new AbdlVar(e1 - e2);
+      //int - point -> point
+      if (this.getType() == 'number' && other.getType() == 'object') {
+        let i = 0;
+        let a = e2;
+        for(num in e2) {
+          a[i] = e1 - num;
+          i++
+        }
+        return a;
+      }
+      //point - int     ->  point
+      if (this.getType() == 'object' && other.getType() == 'number')
+        return new AbdlVar([e1[0] - e2, e1[1] - e2]);
+      //point - point   ->  point
+      if (this.getType() == 'object' && other.getType() == 'object')
+        return new AbdlVar([e1[0] - e2[0], e1[1] - e2[1]]);
+      return null;
+    }
   mul(other) { // '*'
     let e1 = this.getValue()
     let e2 = other.getValue()
@@ -191,6 +209,11 @@ export default class AbdlVar {
   getValue() {
     return this.value;
   }
+
+  setValue(idx, val) {
+    this.value[idx] = val;
+  }
+
   toString() {
     if (this.getType() == 'number' || this.getType() == 'string')
       return this.getValue()

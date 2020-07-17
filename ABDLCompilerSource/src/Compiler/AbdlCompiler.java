@@ -3,7 +3,6 @@ package Compiler;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -239,12 +238,12 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     }
 
     public Object visitBoard(AbdlParser.BoardContext ctx) {
-        String point = (String) visit(ctx.arrayDecl());
+        String array = (String) visit(ctx.arrayDecl());
         switch (ctx.prop.getText()) {
             case "piece_name":
-                return "(getName(" + point + "))";
+                return "(getName([" + array + ".getValue()[0], " + array + ".getValue()[1]" + "]))";
             case "owner":
-                return "(getOwner(" + point + "))";
+                return "(getOwner([" + array + ".getValue()[0], " + array + ".getValue()[1]" + "]))";
         }
         return null;
     }
@@ -255,12 +254,8 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
             if (ctx.type() == null) {
                 System.err.println("Type not defined");
             } else {
-                ST varDecl = templates.getInstanceOf("decl");
-                Variable newVar = new Variable(createVar(), "");
-                symbolTable.pushSymbol(ctx.ID().getText(), newVar);
-                varDecl.add("var", newVar.getName());
-                String value = "";
-                switch ((String) visit(ctx.type())) {
+                String value = (String) visit(ctx.type());
+                switch (value) {
                     case "int":
                         value = "0";
                         break;
@@ -268,9 +263,23 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
                         value = "\"\"";
                         break;
                     default:
-                        value = "{}";
+                        int size = value.split("<").length;
+                        if(value.split("<")[value.split("<").length - 1].charAt(0) == 's') value = "\"\"";
+                        else value = "0";
+                        for(int i = 0; i < size-2; i++) {
+                            ST varDecl2 = templates.getInstanceOf("decl");
+                            varDecl2.add("var", createVar());
+                            value = "new ABDLVar([v" + (varCounter - 2) + "])";
+                            varDecl2.add("val", value);
+                            addVar(varDecl2.render());
+                        }
+                        value = "v" + (varCounter - 1);
                         break;
                 }
+                ST varDecl = templates.getInstanceOf("decl");
+                Variable newVar = new Variable(createVar(), "");
+                symbolTable.pushSymbol(ctx.ID().getText(), newVar);
+                varDecl.add("var", newVar.getName());
                 varDecl.add("val", "new ABDLVar(" + value + ")");
                 return varDecl.render();
             }
@@ -298,20 +307,46 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     @Override
     public Object visitVarAttrib(AbdlParser.VarAttribContext ctx) {
         String var = "";
-        if(((String) visit(ctx.expr(1))).charAt(0) != 'v') {
-            System.out.println("Only variables are adressable with an index...\n var provided: " + var);
+        /*if(((String) visit(ctx.expr(1))).charAt(0) != 'v') {
+            System.out.println("Only variables are adressable with an index...\n var provided: " + (String) visit(ctx.expr(1)));
             System.exit(1);
-        }
+        }*/
 
         String expr = (String) visit(ctx.expr(1));
         if(ctx.expr(0).getText().charAt(ctx.expr(0).getText().length() - 1) == ']') {
             System.out.println(ctx.expr(0).getText().substring(0, ctx.expr(0).getText().length()-3));
-            var = symbolTable.resolveName(ctx.expr(0).getText().substring(0, ctx.expr(0).getText().length()-3)) +
-                  ".getValue()[" + ctx.expr(0).getText().split("\\[")[1];
+            String[] indexes = ctx.expr(0).getText().split("\\[");
+            var = symbolTable.resolveName(indexes[0]);
+            //var += ".getValue()[" + indexes[1].substring(0, indexes[1].length() - 1) + "]";
+            for(int i = 1; i < indexes.length ; i++) {
+                if(symbolTable.resolveName(indexes[i].substring(0, indexes[1].length() - 1)) != null) {
+                    if(i == indexes.length - 1) {
+                        if(countChar(ctx.expr(0).getText(), '[') >= 1)
+                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - countChar(indexes[i] + 1, ']'))) + ".value," + expr + ".value);";
+                        else
+                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ", " + expr + ");";
+
+                    }
+                    else
+                        var += ".getValue()[" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ".getValue()]";
+                }
+                else {
+                    if(i == indexes.length - 1)
+                        if(countChar(ctx.expr(0).getText(), '[') >= 1)
+                            var += ".setValue(" + indexes[i].substring(0, indexes[i].length() - countChar(indexes[i], ']')) + ", " + expr + ".value);";
+                        else
+                            var += ".setValue(" + indexes[i].substring(0, indexes[i].length() - 1) + ", " + expr + ");";
+
+                    else var += ".getValue()[" + indexes[i].substring(0, indexes[i].length() - 2) + "]";
+                }
+                System.out.println(indexes[i].substring(0, indexes[1].length() - 1) + " -> " +  indexes[i].substring(0, indexes[1].length() - 1));
+                System.out.println("re...");
+            }
+
+            return var;
             //return null;
         }
-        else var = symbolTable.resolveName(expr);
-        System.out.println(var + " = " + expr + ";");
+        else var = (String) visit(ctx.expr(0));
         return var + " = " + expr + ";";
     }
 
@@ -338,7 +373,16 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
     public Object visitPrintCall(AbdlParser.PrintCallContext ctx) {
         ST print = templates.getInstanceOf("statements");
         for (var expr : (List<String>) visit(ctx.args())) {
-            print.add("stat", "console.log(" + expr + ".toString());");
+            if(expr.charAt(expr.length() - 1) == ';') {
+                ST varDecl = templates.getInstanceOf("decl");
+                String resVar = createVar();
+                varDecl.add("var", resVar);
+                varDecl.add("val", expr);
+                addVar(varDecl.render());
+                print.add("stat","console.log(" + resVar + ".toString());");
+            }
+
+            else print.add("stat",  "console.log(" + expr + ".toString());");
         }
         return print.render();
     }
@@ -371,9 +415,10 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
         if(ctx.expr().size() == 2) {
             String expr0 = (String) visit(ctx.expr(0));
             String expr1 = (String) visit(ctx.expr(1));
+            System.out.println(expr0 + " and " + expr1);
             varDecl.add("val", "new ABDLVar([" + expr0 + ", " + expr1 + "])");
             addVar(varDecl.render());
-            return null;
+            return resVar;
         }
         varDecl.add("val", "new ABDLVar([");
         for(var expr: ctx.expr()) {
@@ -534,11 +579,27 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
         String expr0 = (String) visit(ctx.expr(0));
         String expr1 = (String) visit(ctx.expr(1));
         varDecl.add("var", resVar);
-        varDecl.add("val", "new ABDLVar(" + expr0 + ".getValue()[" + expr1 + ".getValue()])");
+        System.out.println(ctx.expr(0).getText() + " wee");
+        System.out.println(ctx.expr(1).getText());
+        System.out.println(ctx.expr(0).getText() + "  --->  " + countChar(ctx.expr(0).getText(), '['));
+        if(countChar(ctx.expr(0).getText(), '[') >= 1) {
+            varDecl.add("val", "new ABDLVar(" + expr0 + ".getValue()");
+            varDecl.add("val", ".value");
+            varDecl.add("val", "[" + expr1 + ".getValue()])");
+        }
+        else varDecl.add("val", "new ABDLVar(" + expr0 + ".getValue()[" + expr1 + ".getValue()])");
         addVar(varDecl.render());
+        System.out.println(varDecl.render());
         return resVar;
     }
 
+    int countChar(String str, char c) {
+        int count = 0;
+        for(int i = 0; i < str.length(); i++) {
+            if(str.charAt(i) == c) count++;
+        }
+        return count;
+    }
 
     private void addVar(String declaration) {
         scopesST.peek().add(stControl, declaration);
