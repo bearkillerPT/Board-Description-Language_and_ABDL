@@ -45,8 +45,8 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
             }
         }
         List<String> argList = new ArrayList<>(2) {{
-            add("point");
-            add("point");
+            add("array<int>");
+            add("array<int>");
         }};
         //  can_move([x_prev, y_prev], [x_next, y_next]) // returns 1 or 0
         st.pushSymbol("can_move", new Function("can_move", argList, "int"));
@@ -61,9 +61,9 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
 
         TypeInfer typeInfer = new TypeInfer(st);
         String e0Type = typeInfer.visit(ctx.expr(0));
-        if (!e0Type.equals("point")) {
+        if (!e0Type.contains("array")) {
             System.err.println(
-                    "Only points are indexable " + getLineFormatted(ctx.start) + ": " +
+                    "Only arrays are indexable " + getLineFormatted(ctx.start) + ": " +
                             ctx.expr(0).getText() + " is of type " + e0Type
             );
             error = true;
@@ -77,7 +77,8 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
             );
             error = true;
         }
-        return visitChildren(ctx);
+        return ctx.expr(0).getText().split("\\[")[0];
+
     }
 
 
@@ -185,14 +186,34 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
         return result;
     }
 
+
+
     @Override
     public Object visitVarAttrib(AbdlParser.VarAttribContext ctx) {
         TypeInfer typeInfer = new TypeInfer(st);
         Variable variable = (Variable) st.resolve((String) visit(ctx.expr(0)));
         String inferredType = typeInfer.visit(ctx.expr(1));
+        if(ctx.expr(0).getText().contains("[")) {
+            String infered = variable.getType();
+            for(int i = 0; i < countChar(ctx.expr(0).getText(), '[') ; i++) {
+                infered = indexedArrayType(infered);
+            }
+            //if(ctx.expr(1).getText().contains("[") && ctx.expr(1).getText().charAt(0) != '[') {
+            //    for(int i = 0; i < countChar(ctx.expr(1).getText(), '[')    ; i++) {
+            //        inferredType = indexedArrayType(inferredType);
+            //    }
+            //}
+            if(!infered.equals(inferredType))  {
+                System.err.println("Variable and attribution types mismatch" + getLineFormatted(ctx.start) + ": " +
+                        ctx.expr(0).getText() + " (" + infered + ") and " +
+                        ctx.expr(1).getText() + " (" + inferredType + ")");
+            }
+            return super.visitVarAttrib(ctx);
+        }
         if (variable == null) {
             //tested
             System.err.println("Variable not declared " + getLineFormatted(ctx.start) + ": " + (String) visit(ctx.expr(0)));
+            System.out.println(ctx.expr(0).getText() + ", " + ctx.expr(0).getClass());
             error = true;
         } else if (inferredType.equals("")) {
             //tested
@@ -214,6 +235,12 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
         String declaredType = ctx.type() != null ? ctx.type().getText() : "";
         TypeInfer ti = new TypeInfer(st);
         String inferredType = ctx.expr() != null ? ti.visit(ctx.expr()) : "";
+        if(ctx.expr() != null && ctx.expr().getText().contains("\\[") && ctx.expr().getText().charAt(0) != '[') {
+            int count = countChar(ctx.expr().getText(), '[');
+            for(int i = 0; i < count ; i++) {
+                inferredType = indexedArrayType(inferredType);
+            }
+        }
         if (declaredType.equals("") && inferredType.equals("")) {
             System.err.println("It was not possible to infer the type " + getLineFormatted(ctx.expr().start) + ": " + ctx.ID().getText());
             error = true;
@@ -230,9 +257,10 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
             );
             error = true;
         }
-
+        System.out.println(ctx.ID().getText() + " -> " + type);
         if (!type.equals(""))
             st.pushSymbol(ctx.ID().getText(), new Variable(ctx.ID().getText(), type));
+
         return visitChildren(ctx);
     }
 
@@ -260,5 +288,17 @@ public class SemanticVisitor extends AbdlBaseVisitor<Object> {
 
     String getLineFormatted(Token start) {
         return "(" + start.getLine() + ":" + start.getCharPositionInLine() + ")";
+    }
+
+    String indexedArrayType(String aIType) {
+        return aIType.substring(6, aIType.length() - 1);
+    }
+
+    int countChar(String str, char c) {
+        int count = 0;
+        for(int i = 0; i < str.length(); i++) {
+            if(str.charAt(i) == c) count++;
+        }
+        return count;
     }
 }

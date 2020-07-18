@@ -50,12 +50,12 @@ public class Main {
             System.err.println("Errors occurred and compilation will stop");
             System.exit(1);
         }
-        //SemanticVisitor visitor = new SemanticVisitor();
-        //visitor.visit(tree);
-        //if (visitor.error) {
-          //  System.err.println("Semantic errors occurred and compilation will stop");
-          //  System.exit(1);
-        //}
+        SemanticVisitor visitor = new SemanticVisitor();
+        visitor.visit(tree);
+        if (visitor.error) {
+            System.err.println("Semantic errors occurred and compilation will stop");
+            System.exit(1);
+        }
 
         AbdlCompiler visitor1 = new AbdlCompiler();
         ST srcCode = (ST) visitor1.visit(tree);

@@ -1,3 +1,3 @@
-cd ..; 
-./update.sh; 
-cd StandaloneCompiler/; 
+cd ..;
+./update.sh;
+cd StandaloneCompiler/;

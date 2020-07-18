@@ -16,7 +16,7 @@ main:
   end main;
 
 move_in_array(b : array<string>, x1 : int, x2 : int):
-  let tempA : string =  b[x2];
+  let tempA : string = b[x2];
   b[x2] = b[x1];
   b[x1] = tempA;
 end move_in_array;

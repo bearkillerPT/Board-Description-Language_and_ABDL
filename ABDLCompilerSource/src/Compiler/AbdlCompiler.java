@@ -314,7 +314,6 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
 
         String expr = (String) visit(ctx.expr(1));
         if(ctx.expr(0).getText().charAt(ctx.expr(0).getText().length() - 1) == ']') {
-            System.out.println(ctx.expr(0).getText().substring(0, ctx.expr(0).getText().length()-3));
             String[] indexes = ctx.expr(0).getText().split("\\[");
             var = symbolTable.resolveName(indexes[0]);
             //var += ".getValue()[" + indexes[1].substring(0, indexes[1].length() - 1) + "]";
@@ -322,9 +321,11 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
                 if(symbolTable.resolveName(indexes[i].substring(0, indexes[1].length() - 1)) != null) {
                     if(i == indexes.length - 1) {
                         if(countChar(ctx.expr(0).getText(), '[') >= 1)
-                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - countChar(indexes[i] + 1, ']'))) + ".value," + expr + ".value);";
+                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - countChar(indexes[i], ']'))) + ".value," + expr + ".value);";
+                        else if (((Variable) symbolTable.resolve(expr)) != null && ((Variable) symbolTable.resolve(expr)).getType().contains("array"))
+                            var +=".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ", " + expr + ".value);";
                         else
-                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ", " + expr + ");";
+                            var += ".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ", " + expr + ".value );";
 
                     }
                     else
@@ -334,13 +335,13 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
                     if(i == indexes.length - 1)
                         if(countChar(ctx.expr(0).getText(), '[') >= 1)
                             var += ".setValue(" + indexes[i].substring(0, indexes[i].length() - countChar(indexes[i], ']')) + ", " + expr + ".value);";
+                        else if (((Variable) symbolTable.resolve(expr)) != null && ((Variable) symbolTable.resolve(expr)).getType().contains("array"))
+                            var +=".setValue(" + symbolTable.resolveName(indexes[i].substring(0, indexes[i].length() - 1)) + ", " + expr + ".value);";
                         else
                             var += ".setValue(" + indexes[i].substring(0, indexes[i].length() - 1) + ", " + expr + ");";
 
                     else var += ".getValue()[" + indexes[i].substring(0, indexes[i].length() - 2) + "]";
                 }
-                System.out.println(indexes[i].substring(0, indexes[1].length() - 1) + " -> " +  indexes[i].substring(0, indexes[1].length() - 1));
-                System.out.println("re...");
             }
 
             return var;
@@ -597,6 +598,7 @@ public class AbdlCompiler extends AbdlBaseVisitor<Object> {
         int count = 0;
         for(int i = 0; i < str.length(); i++) {
             if(str.charAt(i) == c) count++;
+            else break;
         }
         return count;
     }

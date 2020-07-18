@@ -69,7 +69,13 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
 
     @Override
     public String visitExprArrDecl(AbdlParser.ExprArrDeclContext ctx) {
-        return "point";
+        String type = ctx.getText().split("\\[")[ctx.getText().split("\\[").length - 1];
+        if(type.charAt(0) == '"' ) type = "string"; else type = "int";
+        int depth = countChar(ctx.getText(), '[');
+        for(int i = 0; i < depth; i++) {
+            type = "array<" + type + ">";
+        }
+        return type;
     }
 
     @Override
@@ -94,7 +100,36 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
 
     @Override
     public String visitExprArrayIndex(AbdlParser.ExprArrayIndexContext ctx) {
-        return visit(ctx.expr(0));
+        String var = ctx.getText().split("\\[")[0];
+        int count = 0;
+        for(int i = 0; i < ctx.getText().length(); i++) {
+
+            if(ctx.getText().charAt(i) == '[') count++;
+        }
+        Symbol resolved = st.resolve(var);
+        if (!(resolved instanceof Variable)) {
+            //tested
+            System.err.println("Undefined variable " + getLineFormatted(ctx.start) + ": " + var);
+            return "";
+        }
+        System.out.println(indexedArrayType(((Variable) resolved).getType(),  count) + " -> " + count);
+        return indexedArrayType(((Variable) resolved).getType(),  count);
+    }
+
+    @Override
+    public String visitArrayDecl(AbdlParser.ArrayDeclContext ctx) {
+        int count = 0;
+        for(int i = 0; i < ctx.getText().length(); i++) {
+            if(ctx.getText().charAt(i) == '[') count++;
+            else break;
+        }
+        String type = "";
+        if(ctx.getText().charAt(count) == '"') type = "string";
+        else type = "int";
+        for(int i = 0; i < count; i++) {
+            type = "array<" + type + ">";
+        }
+        return type;
     }
 
     @Override
@@ -102,7 +137,7 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
         if (ctx.board().prop.getText().equals("piece_name"))
             return "string";
         else
-            return "int";
+            return "string";
     }
 
     @Override
@@ -149,7 +184,22 @@ public class TypeInfer extends AbdlBaseVisitor<String> {
     String getLineFormatted(Token start) {
         return "(" + start.getLine() + ":" + start.getCharPositionInLine() + ")";
     }
+
+    int countChar(String str, char c) {
+        int count = 0;
+        for(int i = 0; i < str.length(); i++) {
+            if(str.charAt(i) == c) count++;
+            else break;
+        }
+        return count;
+    }
+    String indexedArrayType(String aIType, int timesRepeate) {
+        for(int i = 0; i < timesRepeate; i++) aIType = aIType.substring(6, aIType.length() - 1);
+        return aIType;
+    }
 }
+
+
 /*
 
   new HashMap<Pair, String>(){{
